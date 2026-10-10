@@ -1,25 +1,37 @@
 #[macro_export]
 macro_rules! avec {
-    () => {
-        Vec::new() 
-    };
-    ($($element: expr),+ $(,)?) => {
+    ($($element: expr),* $(,)?) => {
         {
-            let mut vs = Vec::new();
+            #[allow(unused_mut)]
+            let mut vs = Vec::with_capacity($crate::count![@COUNT; $($element),*]);
             $(vs.push($element);)*
             vs
         }
     };
 
+    ($($element:expr,)*) => {{
+        $crate::avec![$($element),*]
+    }};
+
     ($element: expr; $count: expr) => {
         {
             let mut vs = Vec::new();
-            let x = $element;
-            for _ in 0..$count {
-                vs.push(x.clone());
-            }
+            vs.resize($count, $element);
             vs
         }
+    };
+}
+
+#[macro_export]
+#[doc(hidden)]
+
+macro_rules! count {
+    (@COUNT; $($element:expr),*) => {
+        <[()]>::len(&[$($crate::count![@SUBST; $element]),*])
+    };
+
+    (@SUBST; $($element:expr),*) => {
+        () 
     };
 }
 
